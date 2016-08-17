@@ -1,18 +1,13 @@
 import sublime, sublime_plugin, subprocess, os, sys, datetime
 from io import StringIO
 
-# TODO:
-# fix query reading to handle edge cases
-# open new window and pipe terminal output there
-# get error printing to work with standard out printing
-# run terminal commands seperately (one at a time, not sure if this will even work tho?
-# -and only if the out/err printing isnt solved because it is right now mis matching errors
+class ExampleCommand(sublime_plugin.TextCommand):
+  def run(self, edit, args):
+    self.view.insert(edit, 0, args.get("text"))
+
 
 class EventDump(sublime_plugin.EventListener):
   def on_post_save_async(self, view):
-
-    # view.window().new_file().insert(null, 0, "hello")
-
     prefix = "   "
 
     # Extract file extension from currently saved file
@@ -50,8 +45,7 @@ class EventDump(sublime_plugin.EventListener):
 
       # Generate shell commands
       # Login, cd into workspace dir, execute force cli action
-      commands = ["cd " + workspace_dir, "./login", action]
-      # commands = ["cd " + workspace_dir, "./login", "echo -e '\n\n'", action]
+      commands = ["cd " + workspace_dir, "./login", "echo -e '\n\n'", action]
       command = " && ".join(commands)
 
 
@@ -59,44 +53,19 @@ class EventDump(sublime_plugin.EventListener):
       sublime.active_window().run_command("show_panel", {"panel": "console", "toggle": True})
       view.window().active_panel()
 
-      print(command)
 
       # Execute bash command
-      proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+      proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+
+      logStdout = ""
 
       while proc.poll() is None:
         lineOut = proc.stdout.readline()
         lineOutToString = lineOut.strip().decode("utf-8")
+        logStdout = logStdout + lineOutToString + "\n"
         print(prefix + lineOutToString)
 
-        
-        # print(proc.stdout.readline());
-        # print(proc.stderr.readline());
-
-        # printline = ""
-
-        # _stdout = proc.stdout.readline()
-        # if _stdout:
-        #   printLine = _stdout
-        # else:
-        # _stderr = proc.stderr.readline()
-        # if _stderr:
-        #   printLine = _stderr
-        
-        # print(printLine)
-
-
-
-
-        # print(proc.stderr.readline())
-        # lineOut = proc.stdout.readline()
-        # lineOutToString = lineOut.strip().decode("utf-8")
-        # print(prefix + lineOutToString)
-
-        # lineErr = proc.stderr.readline()
-        # lineErrToString = lineErr.strip().decode("utf-8")
-        # print(prefix + lineErrToString)
-
+      createNewWindow(view, logStdout)
 
       # Something to do with the panel
       sublime.active_window().run_command("show_panel", {"panel": "console", "toggle": False})
@@ -137,3 +106,10 @@ class EventDump(sublime_plugin.EventListener):
       query_str = ''.join(query)    
 
     return query_str;
+
+
+def createNewWindow(view, textToApply):
+  newFileView = view.window().new_file()
+  newFileView.run_command("example", {"args":{"text":textToApply}})
+
+

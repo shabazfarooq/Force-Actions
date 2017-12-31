@@ -65,7 +65,7 @@ class EventDump(sublime_plugin.EventListener):
         logStdout = logStdout + lineOutToString + "\n"
         print(prefix + lineOutToString)
 
-      createNewWindow(view, logStdout)
+      #createNewWindow(view, logStdout)
 
       # Something to do with the panel
       sublime.active_window().run_command("show_panel", {"panel": "console", "toggle": False})

@@ -57,15 +57,16 @@ class EventDump(sublime_plugin.EventListener):
       # Execute bash command
       proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 
-      logStdout = ""
+      # logStdout = ""
 
       while proc.poll() is None:
         lineOut = proc.stdout.readline()
         lineOutToString = lineOut.strip().decode("utf-8")
-        logStdout = logStdout + lineOutToString + "\n"
+        lineOutToString = lineOutToString.replace("];", "").replace("-e", "")
+        # logStdout = logStdout + lineOutToString + "\n"
         print(prefix + lineOutToString)
 
-      #createNewWindow(view, logStdout)
+      # #createNewWindow(view, logStdout)
 
       # Something to do with the panel
       sublime.active_window().run_command("show_panel", {"panel": "console", "toggle": False})
